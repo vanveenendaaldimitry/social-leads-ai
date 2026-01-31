@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { supabase } from "../../../lib/supabaseClient"
+import { supabase } from "../../../../lib/supabaseClient"
 
 type SourceRow = Record<string, any>
 
@@ -77,35 +77,35 @@ export default function SourcesPage() {
   }, [rows])
 
   const content = useMemo(() => {
-    if (loading) return <p className="text-neutral-400">Loading</p>
+    if (loading) return <p className="text-slate-500">Loading</p>
 
     if (error) {
       return (
-        <div className="rounded-xl border border-red-900 bg-red-950 px-4 py-3 text-red-200">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
           Error {error}
         </div>
       )
     }
 
-    if (!rows.length) return <p className="text-neutral-400">Geen records gevonden</p>
+    if (!rows.length) return <p className="text-slate-500">Geen records gevonden</p>
 
     return (
-      <div className="overflow-x-auto rounded-xl border border-neutral-800">
+      <div className="overflow-x-auto rounded-2xl border border-slate-200/60 shadow-lg">
         <table className="w-full text-left text-sm">
-          <thead className="bg-neutral-950">
-            <tr className="text-neutral-300">
+          <thead className="bg-slate-50">
+            <tr className="text-slate-600">
               {columns.map((c) => (
-                <th key={c} className="px-4 py-3 font-medium">
+                <th key={c} className="px-4 py-3 font-semibold">
                   {c}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="bg-neutral-900">
+          <tbody className="bg-white">
             {rows.map((r, idx) => (
-              <tr key={r.id ?? idx} className="border-t border-neutral-800">
+              <tr key={r.id ?? idx} className="border-t border-slate-100 transition-colors hover:bg-slate-50/50">
                 {columns.map((c) => (
-                  <td key={c} className="px-4 py-3 text-neutral-200">
+                  <td key={c} className="px-4 py-3 text-slate-600">
                     {c === "created_at" && r[c]
                       ? new Date(r[c]).toLocaleString()
                       : typeof r[c] === "object" && r[c] !== null
@@ -125,28 +125,28 @@ export default function SourcesPage() {
     <div>
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Sources</h1>
-          <p className="mt-2 text-neutral-400">
+          <h1 className="text-2xl font-bold text-slate-900">Sources</h1>
+          <p className="mt-2 text-slate-600">
             Overzicht van alle bronnen. Deze lijst vult vanzelf zodra je n8n flow sources toevoegt.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="text-sm text-neutral-400">
+          <div className="text-sm font-medium text-slate-500">
             {loading ? "Bezig" : `${rows.length} items`}
           </div>
 
           <button
             onClick={() => fetchSources(true)}
             disabled={refreshing}
-            className="rounded-lg border border-neutral-800 bg-neutral-950 px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-900 disabled:opacity-50"
+            className="rounded-xl border-2 border-violet-500/50 bg-white px-4 py-2 text-sm font-medium text-violet-600 transition-all duration-200 hover:border-violet-400 hover:bg-violet-50 disabled:opacity-50"
           >
             {refreshing ? "Refreshing" : "Refresh"}
           </button>
         </div>
       </div>
 
-      <div className="mt-6">{content}</div>
+      <div className="mt-8">{content}</div>
     </div>
   )
 }
