@@ -17,7 +17,7 @@ export default function AuthCallbackPage() {
         data: { session },
       } = await supabase.auth.getSession()
       if (session) {
-        router.replace('/test-organizations')
+        router.replace('/social/dashboard')
       } else {
         router.replace('/login?error=no_session')
       }
@@ -25,5 +25,11 @@ export default function AuthCallbackPage() {
     run()
   }, [router])
 
-  return <p>Signing you in...</p>
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gradient-purple">
+      <p className="rounded-2xl bg-white/95 px-8 py-4 text-lg font-medium text-slate-800 shadow-xl">
+        Signing you in...
+      </p>
+    </div>
+  )
 }
