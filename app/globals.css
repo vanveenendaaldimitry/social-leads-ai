@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #1e1b4b;
+  --background: #f9fafb;
+  --foreground: #111827;
   --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #4f46e5 100%);
-  --gradient-dark: linear-gradient(180deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+  --gradient-purple-header: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 50%, #6d28d9 100%);
 }
 
 @theme inline {
@@ -25,8 +25,8 @@ body {
   background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #4f46e5 100%);
 }
 
-.bg-gradient-dark {
-  background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+.bg-gradient-purple-header {
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 50%, #6d28d9 100%);
 }
 
 .btn-primary {

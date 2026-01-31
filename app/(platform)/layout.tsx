@@ -36,9 +36,13 @@ export default async function PlatformLayout({
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-[#f9fafb]">
       <PlatformHeader email={user.email ?? null} />
-      {children}
+      <section className="mx-auto max-w-5xl px-6 py-10">
+        <div className="rounded-2xl border border-slate-200/50 bg-white p-8 shadow-lg shadow-slate-200/40">
+          {children}
+        </div>
+      </section>
     </main>
   )
 }

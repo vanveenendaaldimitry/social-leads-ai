@@ -35,14 +35,14 @@ export default async function Page() {
     .select('*')
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <header className="bg-gradient-dark shadow-xl">
+    <main className="min-h-screen bg-[#f9fafb]">
+      <header className="bg-gradient-purple-header shadow-lg">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-5">
           <div className="text-xl font-bold text-white">Social Followers AI</div>
           <div className="flex items-center gap-2">
             <Link
               href="/social/dashboard"
-              className="rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white/90 transition-all duration-200 hover:border-violet-400/50 hover:bg-white/10"
+              className="rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30"
             >
               Dashboard
             </Link>
@@ -52,7 +52,7 @@ export default async function Page() {
         </div>
       </header>
       <section className="mx-auto max-w-5xl px-6 py-10">
-        <div className="space-y-6 rounded-2xl border border-slate-200/60 bg-white p-8 shadow-xl shadow-slate-200/50">
+        <div className="space-y-6 rounded-2xl border border-slate-200/50 bg-white p-8 shadow-lg shadow-slate-200/40">
           <h1 className="text-2xl font-bold text-slate-900">Organizations</h1>
           <p
             className={`rounded-xl px-4 py-3 text-sm font-medium ${
