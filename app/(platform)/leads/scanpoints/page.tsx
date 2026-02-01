@@ -29,6 +29,8 @@ export default function ScanpointsPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [searchInput, setSearchInput] = useState('')
+  const [searchDebounced, setSearchDebounced] = useState('')
   const [total, setTotal] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -41,10 +43,16 @@ export default function ScanpointsPage() {
   const refetch = () => setRefreshKey((k) => k + 1)
 
   useEffect(() => {
+    const t = setTimeout(() => setSearchDebounced(searchInput.trim()), 300)
+    return () => clearTimeout(t)
+  }, [searchInput])
+
+  useEffect(() => {
     const params = new URLSearchParams()
     params.set('page', String(page))
     params.set('pageSize', String(pageSize))
     if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter)
+    if (searchDebounced) params.set('search', searchDebounced)
     setLoading(true)
     setError(null)
     fetch(`/api/scanpoints?${params}`)
@@ -60,7 +68,7 @@ export default function ScanpointsPage() {
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
-  }, [page, pageSize, statusFilter, refreshKey])
+  }, [page, pageSize, statusFilter, searchDebounced, refreshKey])
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setStatusFilter(e.target.value)
@@ -69,6 +77,17 @@ export default function ScanpointsPage() {
 
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setPageSize(Number(e.target.value))
+    setPage(1)
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value)
+    setPage(1)
+  }
+
+  const clearSearch = () => {
+    setSearchInput('')
+    setSearchDebounced('')
     setPage(1)
   }
 
@@ -200,6 +219,28 @@ export default function ScanpointsPage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-lg font-semibold text-slate-900">Scanpoints</h2>
           <div className="flex flex-wrap items-center gap-3">
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Search location (e.g. Rotterdam)"
+                className="w-56 rounded-lg border border-slate-300 px-3 py-1.5 pr-8 text-sm"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  aria-label="Clear search"
+                  className="absolute right-2 text-slate-400 hover:text-slate-600"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+            </div>
             <label className="flex items-center gap-2">
               <span className="text-sm text-slate-600">Status</span>
               <select

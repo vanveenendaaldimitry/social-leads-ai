@@ -55,6 +55,9 @@ export async function GET(request: NextRequest) {
       ? (statusParam as (typeof VALID_STATUSES)[number])
       : null
 
+  const searchParam = searchParams.get("search")
+  const searchTerm = searchParam != null ? String(searchParam).trim() : null
+
   const offset = (page - 1) * pageSize
 
   try {
@@ -66,6 +69,14 @@ export async function GET(request: NextRequest) {
 
     if (status) {
       query = query.eq("status", status)
+    }
+
+    if (searchTerm) {
+      const escaped = searchTerm.replace(/[%_\\]/g, (c) => (c === "\\" ? "\\\\" : `\\${c}`))
+      const pattern = `"%${escaped}%"`
+      query = query.or(
+        `city.ilike.${pattern},payload->>location_label.ilike.${pattern},payload->>location_input.ilike.${pattern},payload->>location_raw.ilike.${pattern}`
+      )
     }
 
     const { data, error, count } = await query.range(offset, offset + pageSize - 1)
