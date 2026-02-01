@@ -24,13 +24,54 @@ const STATUS_OPTIONS = [
   { value: 'error', label: 'error' },
 ]
 
+function MailIcon({ muted }: { muted?: boolean }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={muted ? 'text-slate-300' : 'text-slate-500'}
+      aria-hidden
+    >
+      <rect width="20" height="16" x="2" y="4" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </svg>
+  )
+}
+
+function LinkIcon({ muted }: { muted?: boolean }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={muted ? 'text-slate-300' : 'text-slate-500'}
+      aria-hidden
+    >
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" x2="21" y1="14" y2="3" />
+    </svg>
+  )
+}
+
 export default function BusinessesPage() {
   const [businesses, setBusinesses] = useState<BusinessRow[]>([])
   const [loading, setLoading] = useState(false)
-  const [enqueueLoading, setEnqueueLoading] = useState(false)
   const [enrichLoading, setEnrichLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [toast, setToast] = useState<{ inserted: number; skipped: number } | null>(null)
   const [enrichToast, setEnrichToast] = useState<{
     succeeded: number
     failed: number
@@ -117,40 +158,11 @@ export default function BusinessesPage() {
     }
   }
 
-  const handleEnqueue = async () => {
-    const ids = Array.from(selectedIds)
-    if (ids.length === 0) return
-    setEnqueueLoading(true)
-    setError(null)
-    setToast(null)
-    setEnrichToast(null)
-    try {
-      const res = await fetch('/api/business-scans/enqueue', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ business_ids: ids }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data.error ?? `Error: ${res.status}`)
-        return
-      }
-      setToast({ inserted: data.inserted ?? 0, skipped: data.skipped ?? 0 })
-      setSelectedIds(new Set())
-      refetch()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to enqueue')
-    } finally {
-      setEnqueueLoading(false)
-    }
-  }
-
   const handleEnrich = async () => {
     const ids = Array.from(selectedIds)
     if (ids.length === 0) return
     setEnrichLoading(true)
     setError(null)
-    setToast(null)
     setEnrichToast(null)
     try {
       const res = await fetch('/api/businesses/enrich', {
@@ -183,7 +195,7 @@ export default function BusinessesPage() {
     <div className="space-y-8">
       <h1 className="text-2xl font-bold text-slate-900">Businesses</h1>
       <p className="text-slate-600">
-        View and manage businesses. Select rows and enqueue scans for processing.
+        View and manage businesses. Select rows and enrich with Google Places data.
       </p>
 
       {error && (
@@ -192,16 +204,6 @@ export default function BusinessesPage() {
           role="alert"
         >
           {error}
-        </div>
-      )}
-
-      {toast !== null && (
-        <div
-          className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
-          role="status"
-        >
-          Enqueued {toast.inserted} scan{toast.inserted !== 1 ? 's' : ''}
-          {toast.skipped > 0 ? `, ${toast.skipped} skipped (already active)` : ''}.
         </div>
       )}
 
@@ -283,14 +285,6 @@ export default function BusinessesPage() {
             </label>
             <button
               type="button"
-              onClick={handleEnqueue}
-              disabled={!hasSelection || enqueueLoading}
-              className="btn-primary disabled:opacity-50"
-            >
-              {enqueueLoading ? 'Enqueuing…' : 'Scan selected'}
-            </button>
-            <button
-              type="button"
               onClick={handleEnrich}
               disabled={!hasSelection || enrichLoading}
               className="btn-primary disabled:opacity-50"
@@ -310,7 +304,7 @@ export default function BusinessesPage() {
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50">
-                    <th className="px-4 py-3 text-left">
+                    <th className="w-10 px-2 py-3 text-center">
                       <input
                         type="checkbox"
                         checked={selectedIds.size === businesses.length && businesses.length > 0}
@@ -319,19 +313,23 @@ export default function BusinessesPage() {
                         className="rounded border-slate-300"
                       />
                     </th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-700">Name</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-700">Address</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-700">Phone</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-700">Email</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-700">Website</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-700">Scan status</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-700">Types</th>
+                    <th className="max-w-[140px] px-3 py-3 text-left font-medium text-slate-700">Name</th>
+                    <th className="max-w-[160px] px-3 py-3 text-left font-medium text-slate-700">Address</th>
+                    <th className="max-w-[110px] px-3 py-3 text-left font-medium text-slate-700">Phone</th>
+                    <th className="w-12 px-2 py-3 text-center font-medium text-slate-700" title="Email">
+                      <MailIcon muted />
+                    </th>
+                    <th className="w-12 px-2 py-3 text-center font-medium text-slate-700" title="Website">
+                      <LinkIcon muted />
+                    </th>
+                    <th className="w-24 px-2 py-3 text-left font-medium text-slate-700">Status</th>
+                    <th className="max-w-[120px] px-3 py-3 text-left font-medium text-slate-700">Types</th>
                   </tr>
                 </thead>
                 <tbody>
                   {businesses.map((b) => (
                     <tr key={b.id} className="border-b border-slate-100">
-                      <td className="px-4 py-3">
+                      <td className="w-10 px-2 py-3 text-center">
                         <input
                           type="checkbox"
                           checked={selectedIds.has(b.id)}
@@ -340,22 +338,58 @@ export default function BusinessesPage() {
                           className="rounded border-slate-300"
                         />
                       </td>
-                      <td className="px-4 py-3 text-slate-600">{b.name ?? '—'}</td>
-                      <td className="px-4 py-3 text-slate-600">{b.address ?? '—'}</td>
-                      <td className="px-4 py-3 text-slate-600">{b.phone ?? '—'}</td>
-                      <td className="px-4 py-3 text-slate-600">{b.email ?? '—'}</td>
-                      <td className="px-4 py-3 text-slate-600">
-                        {b.website ? (
-                          <a href={b.website} target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline">
-                            {b.website}
+                      <td className="max-w-[140px] px-3 py-3 text-slate-600">
+                        <span className="block truncate" title={b.name ?? undefined}>
+                          {b.name ?? '—'}
+                        </span>
+                      </td>
+                      <td className="max-w-[160px] px-3 py-3 text-slate-600">
+                        <span className="block truncate" title={b.address ?? undefined}>
+                          {b.address ?? '—'}
+                        </span>
+                      </td>
+                      <td className="max-w-[110px] px-3 py-3 text-slate-600">
+                        <span className="block truncate" title={b.phone ?? undefined}>
+                          {b.phone ?? '—'}
+                        </span>
+                      </td>
+                      <td className="w-12 px-2 py-3 text-center">
+                        {b.email ? (
+                          <a
+                            href={`mailto:${b.email}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center text-violet-600 hover:text-violet-700"
+                            aria-label={`Email ${b.email}`}
+                          >
+                            <MailIcon />
                           </a>
                         ) : (
-                          '—'
+                          <span className="inline-flex items-center justify-center" aria-hidden>
+                            <MailIcon muted />
+                          </span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="w-12 px-2 py-3 text-center">
+                        {b.website ? (
+                          <a
+                            href={b.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center text-violet-600 hover:text-violet-700"
+                            aria-label={`Open website ${b.website}`}
+                          >
+                            <LinkIcon />
+                          </a>
+                        ) : (
+                          <span className="inline-flex items-center justify-center" aria-hidden>
+                            <LinkIcon muted />
+                          </span>
+                        )}
+                      </td>
+                      <td className="w-24 px-2 py-3">
                         <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                             b.scan_status === 'pending'
                               ? 'bg-amber-100 text-amber-800'
                               : b.scan_status === 'queued'
@@ -372,8 +406,10 @@ export default function BusinessesPage() {
                           {b.scan_status ?? '—'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-slate-600">
-                        {b.primary_type ?? (b.google_types?.length ? b.google_types.join(', ') : '—')}
+                      <td className="max-w-[120px] px-3 py-3 text-slate-600">
+                        <span className="block truncate" title={b.primary_type ?? b.google_types?.join(', ') ?? undefined}>
+                          {b.primary_type ?? (b.google_types?.length ? b.google_types.join(', ') : '—')}
+                        </span>
                       </td>
                     </tr>
                   ))}
