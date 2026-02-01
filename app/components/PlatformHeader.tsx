@@ -14,6 +14,7 @@ const SOCIAL_NAV = [
 
 const LEADS_NAV = [
   { label: 'Dashboard', href: '/leads/dashboard' },
+  { label: 'Scanpoints', href: '/leads/scanpoints' },
   { label: 'Leads', href: '/leads/leads' },
   { label: 'Campaigns', href: '/leads/campaigns' },
   { label: 'Outreach', href: '/leads/outreach' },
