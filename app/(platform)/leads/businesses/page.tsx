@@ -28,8 +28,14 @@ export default function BusinessesPage() {
   const [businesses, setBusinesses] = useState<BusinessRow[]>([])
   const [loading, setLoading] = useState(false)
   const [enqueueLoading, setEnqueueLoading] = useState(false)
+  const [enrichLoading, setEnrichLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<{ inserted: number; skipped: number } | null>(null)
+  const [enrichToast, setEnrichToast] = useState<{
+    succeeded: number
+    failed: number
+    skipped_no_place_id: number
+  } | null>(null)
 
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
@@ -117,6 +123,7 @@ export default function BusinessesPage() {
     setEnqueueLoading(true)
     setError(null)
     setToast(null)
+    setEnrichToast(null)
     try {
       const res = await fetch('/api/business-scans/enqueue', {
         method: 'POST',
@@ -135,6 +142,38 @@ export default function BusinessesPage() {
       setError(e instanceof Error ? e.message : 'Failed to enqueue')
     } finally {
       setEnqueueLoading(false)
+    }
+  }
+
+  const handleEnrich = async () => {
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) return
+    setEnrichLoading(true)
+    setError(null)
+    setToast(null)
+    setEnrichToast(null)
+    try {
+      const res = await fetch('/api/businesses/enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ business_ids: ids }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? `Error: ${res.status}`)
+        return
+      }
+      setEnrichToast({
+        succeeded: data.succeeded ?? 0,
+        failed: data.failed ?? 0,
+        skipped_no_place_id: data.skipped_no_place_id ?? 0,
+      })
+      setSelectedIds(new Set())
+      refetch()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to enrich')
+    } finally {
+      setEnrichLoading(false)
     }
   }
 
@@ -163,6 +202,17 @@ export default function BusinessesPage() {
         >
           Enqueued {toast.inserted} scan{toast.inserted !== 1 ? 's' : ''}
           {toast.skipped > 0 ? `, ${toast.skipped} skipped (already active)` : ''}.
+        </div>
+      )}
+
+      {enrichToast !== null && (
+        <div
+          className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
+          role="status"
+        >
+          Enriched {enrichToast.succeeded} business{enrichToast.succeeded !== 1 ? 'es' : ''}
+          {enrichToast.failed > 0 ? `, ${enrichToast.failed} failed` : ''}
+          {enrichToast.skipped_no_place_id > 0 ? `, ${enrichToast.skipped_no_place_id} skipped (no place_id)` : ''}.
         </div>
       )}
 
@@ -238,6 +288,14 @@ export default function BusinessesPage() {
               className="btn-primary disabled:opacity-50"
             >
               {enqueueLoading ? 'Enqueuing…' : 'Scan selected'}
+            </button>
+            <button
+              type="button"
+              onClick={handleEnrich}
+              disabled={!hasSelection || enrichLoading}
+              className="btn-primary disabled:opacity-50"
+            >
+              {enrichLoading ? 'Enriching…' : 'Enrich selected'}
             </button>
           </div>
         </div>
