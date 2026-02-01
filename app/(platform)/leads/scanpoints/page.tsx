@@ -280,8 +280,9 @@ export default function ScanpointsPage() {
 
         {runResult !== null && (
           <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
-            <strong>Run result:</strong>
-            <pre className="mt-2 overflow-x-auto">{JSON.stringify(runResult, null, 2)}</pre>
+            {typeof runResult === 'object' && runResult !== null && 'message' in runResult
+              ? String((runResult as { message?: string }).message)
+              : 'Run completed.'}
           </div>
         )}
 
