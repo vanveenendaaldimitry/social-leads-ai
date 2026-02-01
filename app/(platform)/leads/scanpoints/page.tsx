@@ -8,7 +8,6 @@ type Scanpoint = {
   lat: number | null
   lng: number | null
   radius: number
-  query: string | null
   source: string | null
   status: string
   attempts: number
@@ -37,8 +36,6 @@ export default function ScanpointsPage() {
   const [form, setForm] = useState({
     location: '',
     radius: '3000',
-    query: '',
-    type: '',
   })
 
   const refetch = () => setRefreshKey((k) => k + 1)
@@ -87,8 +84,6 @@ export default function ScanpointsPage() {
         body: JSON.stringify({
           location: form.location,
           radius: form.radius ? Number(form.radius) : 3000,
-          query: form.query || undefined,
-          type: form.type || undefined,
         }),
       })
       const data = await res.json()
@@ -97,7 +92,7 @@ export default function ScanpointsPage() {
         return
       }
       setSuccessMsg('Scanpoints are being generated')
-      setForm((f) => ({ ...f, location: '', query: '', type: '' }))
+      setForm((f) => ({ ...f, location: '' }))
       setPage(1)
       refetch()
     } catch (e) {
@@ -133,7 +128,7 @@ export default function ScanpointsPage() {
     }
   }
 
-  const canCreate = form.location && (form.query || form.type)
+  const canCreate = Boolean(form.location?.trim())
 
   return (
     <div className="space-y-8">
@@ -191,28 +186,7 @@ export default function ScanpointsPage() {
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
             />
           </label>
-          <label>
-            <span className="block text-sm font-medium text-slate-700">Query</span>
-            <input
-              type="text"
-              value={form.query}
-              onChange={(e) => setForm((f) => ({ ...f, query: e.target.value }))}
-              placeholder="e.g. restaurant"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            />
-          </label>
-          <label>
-            <span className="block text-sm font-medium text-slate-700">Type</span>
-            <input
-              type="text"
-              value={form.type}
-              onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
-              placeholder="e.g. restaurant"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            />
-          </label>
         </div>
-        <p className="text-xs text-slate-500">At least one of Query or Type is required.</p>
         <button
           type="submit"
           disabled={!canCreate || createLoading}
@@ -282,7 +256,6 @@ export default function ScanpointsPage() {
                   <tr className="border-b border-slate-200 bg-slate-50">
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Location</th>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Status</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-700">Query</th>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Attempts</th>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Created</th>
                     <th className="px-4 py-3 text-left font-medium text-slate-700">Actions</th>
@@ -307,7 +280,6 @@ export default function ScanpointsPage() {
                           {s.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-slate-600">{s.query ?? '—'}</td>
                       <td className="px-4 py-3">{s.attempts}</td>
                       <td className="px-4 py-3 text-slate-600">
                         {new Date(s.created_at).toLocaleString()}

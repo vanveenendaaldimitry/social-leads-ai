@@ -3,7 +3,7 @@ import { createSupabaseAdmin } from "@/lib/supabase/admin"
 import { getAuthUser } from "@/lib/getAuthUser"
 
 const SELECT_FIELDS =
-  "id, city, lat, lng, radius, query, source, status, attempts, last_error, created_at, processed_at, payload"
+  "id, city, lat, lng, radius, source, status, attempts, last_error, created_at, processed_at, payload"
 
 const VALID_PAGE_SIZES = [10, 25, 50] as const
 const VALID_STATUSES = ["pending", "processing", "done", "error"] as const

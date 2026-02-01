@@ -45,22 +45,11 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const query = body?.query != null ? String(body.query).trim() : ""
-  const type = body?.type != null ? String(body.type).trim() : ""
-  if (!query && !type) {
-    return NextResponse.json(
-      { error: "At least one of query or type must be provided" },
-      { status: 400 }
-    )
-  }
-
   const locationStr = String(location).trim()
   const payload = {
     location: locationStr,
-    radius,
-    query: query || undefined,
-    type: type || undefined,
     location_label: locationStr,
+    radius,
   }
 
   try {
