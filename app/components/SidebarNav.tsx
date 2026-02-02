@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import type { LucideIcon } from 'lucide-react'
 import {
   LayoutDashboard,
@@ -27,9 +27,9 @@ export type NavItem = {
 const LEADS_NAV: NavItem[] = [
   { label: 'Dashboard', href: '/leads/dashboard', icon: LayoutDashboard },
   { label: 'Scanpoints', href: '/leads/scanpoints', icon: ScanSearch, section: 'Data' },
-  { label: 'Found businesses', href: '/leads/businesses?view=found', icon: Building2, section: 'Data' },
-  { label: 'Enrichment', href: '/leads/businesses?view=enrichment', icon: Sparkles, section: 'Analysis' },
-  { label: 'Scored businesses', href: '/leads/businesses?view=scored', icon: BadgeCheck, section: 'Analysis' },
+  { label: 'Found businesses', href: '/leads/businesses', icon: Building2, section: 'Data' },
+  { label: 'Enrichment', href: '/leads/businesses/enrichment', icon: Sparkles, section: 'Analysis' },
+  { label: 'Scored businesses', href: '/leads/businesses/scored', icon: BadgeCheck, section: 'Analysis' },
   { label: 'Leads', href: '/leads/leads', icon: Users, section: 'Action' },
   { label: 'Outreach', href: '/leads/outreach', icon: Send, section: 'Action' },
   { label: 'Campaigns', href: '/leads/campaigns', icon: Megaphone, section: 'Management' },
@@ -51,18 +51,12 @@ type SidebarNavProps = {
 
 function SidebarNavInner({ variant }: SidebarNavProps) {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const items = variant === 'leads' ? LEADS_NAV : SOCIAL_NAV
 
   const isActive = (href: string) => {
-    if (href.includes('?')) {
-      const [path, query] = href.split('?')
-      if (pathname !== path) return false
-      const view = new URLSearchParams(query).get('view')
-      const currentView = searchParams?.get('view')
-      return view === currentView || (!view && !currentView)
-    }
-    return pathname === href
+    if (pathname === href) return true
+    if (href === '/leads/businesses' && pathname?.startsWith('/leads/businesses/')) return false
+    return false
   }
 
   const grouped = items.reduce<Record<string, NavItem[]>>((acc, item) => {

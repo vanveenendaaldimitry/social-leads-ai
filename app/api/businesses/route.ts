@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
   const pageSize = VALID_PAGE_SIZES.includes(Number(pageSizeParam) as (typeof VALID_PAGE_SIZES)[number])
     ? (Number(pageSizeParam) as (typeof VALID_PAGE_SIZES)[number])
     : 25
+  const viewParam = searchParams.get("view")
   const statusParam = searchParams.get("status")
   const typeParam = searchParams.get("type")
   const typeFilter = typeParam != null ? String(typeParam).trim() : null
@@ -42,7 +43,11 @@ export async function GET(request: NextRequest) {
   const offset = (page - 1) * pageSize
 
   let statusFilter: string[] | null = null
-  if (statusParam && statusParam !== "all") {
+  if (viewParam === "enrichment") {
+    statusFilter = ["scraped"]
+  } else if (viewParam === "scored") {
+    statusFilter = ["done"]
+  } else if (statusParam && statusParam !== "all") {
     const parts = statusParam.split(",").map((s) => s.trim()).filter(Boolean)
     const valid = parts.filter((s) => VALID_STATUSES.includes(s as (typeof VALID_STATUSES)[number]))
     if (valid.length > 0) statusFilter = valid
@@ -56,7 +61,13 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false })
 
     if (statusFilter && statusFilter.length > 0) {
-      query = query.in("scan_status", statusFilter)
+      if (viewParam === "enrichment") {
+        query = query.eq("scan_status", "scraped")
+      } else if (viewParam === "scored") {
+        query = query.eq("scan_status", "done")
+      } else {
+        query = query.in("scan_status", statusFilter)
+      }
     }
 
     if (typeFilter) {
