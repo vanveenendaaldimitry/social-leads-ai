@@ -62,12 +62,14 @@ const VIEW_CONFIG: Record<ViewMode, {
   showStatusColumn: boolean
   showBulkActions: boolean
   showCheckboxes: boolean
+  showEnrichButton: boolean
+  showAiEnrichButton: boolean
   rowClickHrefBase: string | null
   rowClickFrom?: string
 }> = {
-  found: { fixedStatus: null, showFilterBar: true, showStatusColumn: true, showBulkActions: true, showCheckboxes: true, rowClickHrefBase: null },
-  enrichment: { fixedStatus: 'scraped', showFilterBar: false, showStatusColumn: false, showBulkActions: true, showCheckboxes: true, rowClickHrefBase: '/leads/businesses/', rowClickFrom: 'enrichment' },
-  scored: { fixedStatus: 'done', showFilterBar: false, showStatusColumn: false, showBulkActions: false, showCheckboxes: false, rowClickHrefBase: '/leads/businesses/', rowClickFrom: 'scored' },
+  found: { fixedStatus: null, showFilterBar: true, showStatusColumn: true, showBulkActions: true, showCheckboxes: true, showEnrichButton: true, showAiEnrichButton: false, rowClickHrefBase: null },
+  enrichment: { fixedStatus: 'scraped', showFilterBar: false, showStatusColumn: false, showBulkActions: true, showCheckboxes: true, showEnrichButton: false, showAiEnrichButton: true, rowClickHrefBase: '/leads/businesses/', rowClickFrom: 'enrichment' },
+  scored: { fixedStatus: 'done', showFilterBar: false, showStatusColumn: false, showBulkActions: false, showCheckboxes: false, showEnrichButton: false, showAiEnrichButton: false, rowClickHrefBase: '/leads/businesses/', rowClickFrom: 'scored' },
 }
 
 export default function BusinessesList({
@@ -77,7 +79,7 @@ export default function BusinessesList({
   initialStatus = 'all',
 }: BusinessesListProps) {
   const config = VIEW_CONFIG[viewMode] ?? VIEW_CONFIG.found
-  const { fixedStatus, showFilterBar, showStatusColumn, showBulkActions, showCheckboxes, rowClickHrefBase, rowClickFrom } = config
+  const { fixedStatus, showFilterBar, showStatusColumn, showBulkActions, showCheckboxes, showEnrichButton, showAiEnrichButton, rowClickHrefBase, rowClickFrom } = config
   const router = useRouter()
   const [businesses, setBusinesses] = useState<BusinessRow[]>([])
   const [loading, setLoading] = useState(false)
@@ -338,12 +340,16 @@ export default function BusinessesList({
             )}
             {showBulkActions && (
               <>
-                <button type="button" onClick={handleEnrich} disabled={!hasSelection || anyEnrichLoading} className="btn-primary disabled:opacity-50">
-                  {enrichLoading ? 'Enriching…' : 'Enrich selected'}
-                </button>
-                <button type="button" onClick={handleAiEnrich} disabled={!hasSelection || anyEnrichLoading} className="btn-primary disabled:opacity-50">
-                  {aiEnrichLoading ? 'Starting…' : 'AI enrich selected'}
-                </button>
+                {showEnrichButton && (
+                  <button type="button" onClick={handleEnrich} disabled={!hasSelection || anyEnrichLoading} className="btn-primary disabled:opacity-50">
+                    {enrichLoading ? 'Enriching…' : 'Enrich selected'}
+                  </button>
+                )}
+                {showAiEnrichButton && (
+                  <button type="button" onClick={handleAiEnrich} disabled={!hasSelection || anyEnrichLoading} className="btn-primary disabled:opacity-50">
+                    {aiEnrichLoading ? 'Starting…' : 'AI enrich selected'}
+                  </button>
+                )}
               </>
             )}
           </div>
