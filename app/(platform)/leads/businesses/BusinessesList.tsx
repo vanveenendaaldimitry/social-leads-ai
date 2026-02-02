@@ -82,8 +82,10 @@ export default function BusinessesList({
   const [businesses, setBusinesses] = useState<BusinessRow[]>([])
   const [loading, setLoading] = useState(false)
   const [enrichLoading, setEnrichLoading] = useState(false)
+  const [aiEnrichLoading, setAiEnrichLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [enrichToast, setEnrichToast] = useState<{ succeeded: number; failed: number; skipped_no_place_id: number } | null>(null)
+  const [aiEnrichToast, setAiEnrichToast] = useState<{ started: number; failed: number; failedIds: string[] } | null>(null)
 
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
@@ -179,6 +181,7 @@ export default function BusinessesList({
     setEnrichLoading(true)
     setError(null)
     setEnrichToast(null)
+    setAiEnrichToast(null)
     try {
       const res = await fetch('/api/businesses/enrich', {
         method: 'POST',
@@ -204,6 +207,40 @@ export default function BusinessesList({
     }
   }
 
+  const handleAiEnrich = async () => {
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) return
+    setAiEnrichLoading(true)
+    setError(null)
+    setEnrichToast(null)
+    setAiEnrichToast(null)
+    try {
+      const res = await fetch('/api/ai-enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessIds: ids }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? `Error: ${res.status}`)
+        return
+      }
+      const started = data.started ?? []
+      const failed = data.failed ?? []
+      setAiEnrichToast({
+        started: started.length,
+        failed: failed.length,
+        failedIds: failed.slice(0, 3).map((f: { business_id: string }) => f.business_id),
+      })
+      setSelectedIds(new Set())
+      refetch()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to start AI enrichment')
+    } finally {
+      setAiEnrichLoading(false)
+    }
+  }
+
   const handleRowClick = (id: string) => {
     if (rowClickHrefBase) {
       const href = rowClickFrom ? `${rowClickHrefBase}${id}?from=${rowClickFrom}` : `${rowClickHrefBase}${id}`
@@ -213,6 +250,7 @@ export default function BusinessesList({
 
   const hasSelection = selectedIds.size > 0
   const rowClickable = !!rowClickHrefBase
+  const anyEnrichLoading = enrichLoading || aiEnrichLoading
 
   return (
     <div className="space-y-8">
@@ -230,6 +268,16 @@ export default function BusinessesList({
           Enriched {enrichToast.succeeded} business{enrichToast.succeeded !== 1 ? 'es' : ''}
           {enrichToast.failed > 0 ? `, ${enrichToast.failed} failed` : ''}
           {enrichToast.skipped_no_place_id > 0 ? `, ${enrichToast.skipped_no_place_id} skipped (no place_id)` : ''}.
+        </div>
+      )}
+
+      {aiEnrichToast !== null && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status">
+          AI enrichment started for {aiEnrichToast.started} business{aiEnrichToast.started !== 1 ? 'es' : ''}
+          {aiEnrichToast.failed > 0 && (
+            <>; {aiEnrichToast.failed} failed{aiEnrichToast.failedIds?.length ? ` (e.g. ${aiEnrichToast.failedIds.join(', ')})` : ''}</>
+          )}
+          .
         </div>
       )}
 
@@ -289,9 +337,14 @@ export default function BusinessesList({
               </label>
             )}
             {showBulkActions && (
-              <button type="button" onClick={handleEnrich} disabled={!hasSelection || enrichLoading} className="btn-primary disabled:opacity-50">
-                {enrichLoading ? 'Enriching…' : 'Enrich selected'}
-              </button>
+              <>
+                <button type="button" onClick={handleEnrich} disabled={!hasSelection || anyEnrichLoading} className="btn-primary disabled:opacity-50">
+                  {enrichLoading ? 'Enriching…' : 'Enrich selected'}
+                </button>
+                <button type="button" onClick={handleAiEnrich} disabled={!hasSelection || anyEnrichLoading} className="btn-primary disabled:opacity-50">
+                  {aiEnrichLoading ? 'Starting…' : 'AI enrich selected'}
+                </button>
+              </>
             )}
           </div>
         </div>
