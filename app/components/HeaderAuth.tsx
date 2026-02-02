@@ -7,6 +7,8 @@ import { createBrowserClient } from '@supabase/ssr'
 
 type HeaderAuthProps = {
   email: string | null
+  /** 'light' for Topbar (white bg), 'dark' for legacy header (purple bg) */
+  variant?: 'light' | 'dark'
 }
 
 function getInitials(email: string): string {
@@ -17,9 +19,10 @@ function getInitials(email: string): string {
   return `${first}${second}`
 }
 
-export default function HeaderAuth({ email }: HeaderAuthProps) {
+export default function HeaderAuth({ email, variant = 'dark' }: HeaderAuthProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const isLight = variant === 'light'
 
   const handleLogout = async () => {
     const supabase = createBrowserClient(
@@ -36,11 +39,18 @@ export default function HeaderAuth({ email }: HeaderAuthProps) {
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="flex items-center gap-1.5 rounded-full text-white/70 transition-colors hover:text-white/90"
+          className={`flex items-center gap-1.5 rounded-full transition-colors ${
+            isLight ? 'text-slate-600 hover:text-slate-900' : 'text-white/70 hover:text-white/90'
+          }`}
           aria-expanded={open}
           aria-haspopup="true"
+          aria-label="User menu"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-xs font-medium text-white/90">
+          <span
+            className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium ${
+              isLight ? 'bg-slate-200 text-slate-700' : 'bg-white/10 text-white/90'
+            }`}
+          >
             {getInitials(email)}
           </span>
           <svg
@@ -85,7 +95,9 @@ export default function HeaderAuth({ email }: HeaderAuthProps) {
   return (
     <Link
       href="/login"
-      className="text-sm text-white/70 transition-colors hover:text-white/90"
+      className={`text-sm transition-colors ${
+        isLight ? 'text-slate-600 hover:text-slate-900' : 'text-white/70 hover:text-white/90'
+      }`}
     >
       Login
     </Link>
