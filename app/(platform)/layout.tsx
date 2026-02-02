@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
-import PlatformHeader from '../components/PlatformHeader'
+import DashboardLayout from '../components/DashboardLayout'
 
 export default async function PlatformLayout({
   children,
@@ -36,13 +36,8 @@ export default async function PlatformLayout({
   }
 
   return (
-    <main className="min-h-screen bg-[#f9fafb]">
-      <PlatformHeader email={user.email ?? null} />
-      <section className="mx-auto max-w-5xl px-6 py-10">
-        <div className="rounded-2xl border border-slate-200/50 bg-white p-8 shadow-lg shadow-slate-200/40">
-          {children}
-        </div>
-      </section>
-    </main>
+    <DashboardLayout email={user.email ?? null}>
+      {children}
+    </DashboardLayout>
   )
 }
