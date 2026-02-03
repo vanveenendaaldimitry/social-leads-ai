@@ -3,7 +3,7 @@ import { createSupabaseAdmin } from "@/lib/supabase/admin"
 import { getAuthUser } from "@/lib/getAuthUser"
 
 const SELECT_FIELDS =
-  "id, name, address, phone, email, website, scan_status, google_types, primary_type, scan_last_at"
+  "id, name, address, phone, email, website, scan_status, google_types, primary_type, scan_last_at, address_street, address_postal_code, address_city, address_country"
 
 const VALID_PAGE_SIZES = [10, 25, 50] as const
 const VALID_STATUSES = ["pending", "enriched", "scraped", "queued", "processing", "done", "error"] as const
@@ -19,6 +19,10 @@ export type BusinessRow = {
   google_types: string[] | null
   primary_type: string | null
   scan_last_at: string | null
+  address_street: string | null
+  address_postal_code: string | null
+  address_city: string | null
+  address_country: string | null
 }
 
 export async function GET(request: NextRequest) {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { formatBusinessAddress } from '@/lib/address/formatBusinessAddress'
 
 export type BusinessRow = {
   id: string
@@ -14,6 +15,10 @@ export type BusinessRow = {
   google_types: string[] | null
   primary_type: string | null
   scan_last_at: string | null
+  address_street?: string | null
+  address_postal_code?: string | null
+  address_city?: string | null
+  address_country?: string | null
 }
 
 const STATUS_OPTIONS = [
@@ -66,7 +71,8 @@ const VIEW_CONFIG: Record<ViewMode, {
   rowClickFrom?: string
 }> = {
   found: { fixedStatus: null, showFilterBar: true, showStatusColumn: true, showBulkActions: true, showCheckboxes: true, rowClickHrefBase: null },
-  enrichment: { fixedStatus: 'scraped', showFilterBar: false, showStatusColumn: false, showBulkActions: true, showCheckboxes: true, rowClickHrefBase: '/leads/businesses/', rowClickFrom: 'enrichment' },
+  // Enrichment view: no navigation to detail page
+  enrichment: { fixedStatus: 'scraped', showFilterBar: false, showStatusColumn: false, showBulkActions: true, showCheckboxes: true, rowClickHrefBase: null, rowClickFrom: 'enrichment' },
   scored: { fixedStatus: 'done', showFilterBar: false, showStatusColumn: false, showBulkActions: false, showCheckboxes: false, rowClickHrefBase: '/leads/businesses/', rowClickFrom: 'scored' },
 }
 
@@ -338,7 +344,32 @@ export default function BusinessesList({
                         </td>
                       )}
                       <td className="max-w-[140px] px-3 py-3 text-slate-600"><span className="block truncate" title={b.name ?? undefined}>{b.name ?? '—'}</span></td>
-                      <td className="max-w-[160px] px-3 py-3 text-slate-600"><span className="block truncate" title={b.address ?? undefined}>{b.address ?? '—'}</span></td>
+                      <td className="max-w-[160px] px-3 py-3 text-slate-600">
+                        <span
+                          className="block truncate"
+                          title={
+                            viewMode === 'scored'
+                              ? formatBusinessAddress({
+                                  address_street: b.address_street,
+                                  address_postal_code: b.address_postal_code,
+                                  address_city: b.address_city,
+                                  address_country: b.address_country,
+                                  address: b.address,
+                                }) || undefined
+                              : b.address ?? undefined
+                          }
+                        >
+                          {viewMode === 'scored'
+                            ? (formatBusinessAddress({
+                                address_street: b.address_street,
+                                address_postal_code: b.address_postal_code,
+                                address_city: b.address_city,
+                                address_country: b.address_country,
+                                address: b.address,
+                              }) || '—')
+                            : (b.address ?? '—')}
+                        </span>
+                      </td>
                       <td className="max-w-[110px] px-3 py-3 text-slate-600"><span className="block truncate" title={b.phone ?? undefined}>{b.phone ?? '—'}</span></td>
                       <td className="w-12 px-2 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                         {b.email ? (
