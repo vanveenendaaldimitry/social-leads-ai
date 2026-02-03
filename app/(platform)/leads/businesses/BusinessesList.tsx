@@ -185,15 +185,26 @@ export default function BusinessesList({
     setEnrichLoading(true)
     setError(null)
     setEnrichToast(null)
+    const endpoint = viewMode === 'enrichment' ? '/api/ai-enrich' : '/api/businesses/enrich'
+    if (viewMode === 'enrichment') {
+      console.log('[Enrichment] calling ai-enrich with ids count:', ids.length)
+    }
     try {
-      const res = await fetch('/api/businesses/enrich', {
+      let body: { business_ids: string[]; profile_key?: string } = { business_ids: ids }
+      if (viewMode === 'enrichment') {
+        const orgRes = await fetch('/api/organizations')
+        const orgs = await orgRes.json().catch(() => [])
+        const profile_key = Array.isArray(orgs) && orgs[0]?.id != null ? String(orgs[0].id) : 'default'
+        body = { business_ids: ids, profile_key }
+      }
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ business_ids: ids }),
+        body: JSON.stringify(body),
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(data.error ?? `Error: ${res.status}`)
+        setError(data?.error ?? `Enrichment failed (${res.status}). Check logs.`)
         return
       }
       setEnrichToast({
@@ -204,7 +215,7 @@ export default function BusinessesList({
       setSelectedIds(new Set())
       refetch()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to enrich')
+      setError(e instanceof Error ? e.message : 'Enrichment failed. Check logs.')
     } finally {
       setEnrichLoading(false)
     }
